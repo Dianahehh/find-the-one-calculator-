@@ -1,0 +1,9 @@
+{
+  "dates_per_week": 1.0,
+  "cost_per_date": 55,
+  "app_subscription_monthly": 20,
+  "other_monthly_costs": 15,
+  "p_commit_per_first_date": 0.05,
+  "target_probability": 0.8,
+  "notes": "These are broad planning defaults for London 2025 (not predictions). Adjust to your situation."
+}
