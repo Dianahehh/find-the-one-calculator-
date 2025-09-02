@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>London Dating – Time, Cost & Budget Calculator (2025)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Estimate how long it may take and how much it may cost to find a committed relationship in London, based on your pace and budget."/>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">💘 London Dating — Time, Cost & Budget Calculator</h1>
+    <p class="mt-2 text-gray-600">A simple, transparent way to estimate the <span class="font-medium">time</span> and <span class="font-medium">money</span> required to reach a committed relationship based on your weekly dating pace and per‑date budget.</p>
+    <p class="mt-2 text-sm text-gray-500">Tip: Put this file and the <code>london_defaults_2025.json</code> file in the same folder (e.g., your repo root) and enable GitHub Pages.</p>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 pb-16">
+    <section class="bg-white rounded-2xl shadow p-6 md:p-8">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h2 class="text-xl font-semibold mb-4">Your Pace & Budget</h2>
+
+          <label class="block text-sm font-medium">Dates per week
+            <input id="datesPerWeek" type="range" min="0.25" max="5" step="0.25" class="w-full" />
+          </label>
+          <div class="flex justify-between text-sm text-gray-500 -mt-1 mb-4">
+            <span>0.25</span><span id="datesPerWeekVal" class="font-semibold">1</span><span>5</span>
+          </div>
+
+          <label class="block text-sm font-medium">Average cost per date (£)
+            <input id="costPerDate" type="number" inputmode="decimal" class="mt-1 w-full border rounded-lg p-2" placeholder="e.g., 55"/>
+          </label>
+
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <label class="block text-sm font-medium">App subs per month (£)
+              <input id="appSub" type="number" inputmode="decimal" class="mt-1 w-full border rounded-lg p-2" placeholder="e.g., 20"/>
+            </label>
+            <label class="block text-sm font-medium">Other monthly costs (£)
+              <input id="otherMonthly" type="number" inputmode="decimal" class="mt-1 w-full border rounded-lg p-2" placeholder="e.g., 15"/>
+            </label>
+          </div>
+
+          <details class="mt-4">
+            <summary class="cursor-pointer text-sm text-gray-700 font-medium">Advanced probabilities</summary>
+            <div class="mt-3 space-y-3">
+              <label class="block text-sm">Chance a first date becomes a committed relationship (%)
+                <input id="pCommit" type="number" inputmode="decimal" class="mt-1 w-full border rounded-lg p-2" placeholder="e.g., 5"/>
+              </label>
+              <label class="block text-sm">Target confidence to have found a relationship (%)
+                <input id="targetProb" type="number" inputmode="decimal" class="mt-1 w-full border rounded-lg p-2" placeholder="e.g., 80"/>
+              </label>
+            </div>
+          </details>
+
+          <button id="resetBtn" class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm hover:bg-gray-50">Reset to London defaults</button>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold mb-4">Results</h2>
+          <div class="grid gap-4">
+            <div class="p-4 rounded-xl bg-gray-50">
+              <div class="text-sm text-gray-600">Estimated number of distinct first dates needed</div>
+              <div id="neededFirstDates" class="text-3xl font-bold">—</div>
+              <div class="text-xs text-gray-500 mt-1">Formula: n ≥ ln(1 − target) / ln(1 − p)</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gray-50">
+              <div class="text-sm text-gray-600">Estimated time to committed relationship</div>
+              <div class="text-3xl font-bold"><span id="weeksToCommit">—</span> weeks <span class="text-base text-gray-500">(≈ <span id="monthsToCommit">—</span> months)</span></div>
+              <div class="text-xs text-gray-500 mt-1">Assuming a steady pace of first dates per week.</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gray-50">
+              <div class="text-sm text-gray-600">Projected total spend until commitment</div>
+              <div class="text-3xl font-bold">£<span id="totalCost">—</span></div>
+              <ul class="mt-1 text-xs text-gray-500 list-disc pl-5">
+                <li>Per‑date spend: £<span id="perDateSpend">—</span></li>
+                <li>App & other monthly: £<span id="monthlySpend">—</span> × <span id="monthsCount">—</span> months</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-3xl mt-8 text-sm text-gray-600">
+      <h3 class="font-semibold mb-2">How this works</h3>
+      <p class="mb-2">
+        If your chance that any one first date becomes a committed relationship is <code>p</code>, the chance you <em>haven’t</em> found one after
+        <code>n</code> first dates is <code>(1−p)<sup>n</sup></code>. To reach a target confidence (e.g., 80%) that you’ll have found a relationship, you choose <code>n</code> so that
+        <code>1 − (1−p)<sup>n</sup> ≥ target</code>.
+      </p>
+      <p>Time is then <code>n / (dates per week)</code>, and cost adds up per‑date spending plus monthly subscriptions for the months it takes.</p>
+    </section>
+  </main>
+
+  <footer class="max-w-4xl mx-auto px-4 pb-16 text-xs text-gray-500">
+    <p>Made for London in 2025. This is a rough planning tool, not a prediction 🙂</p>
+  </footer>
+
+  <script>
+    const els = {
+      datesPerWeek: document.getElementById('datesPerWeek'),
+      datesPerWeekVal: document.getElementById('datesPerWeekVal'),
+      costPerDate: document.getElementById('costPerDate'),
+      appSub: document.getElementById('appSub'),
+      otherMonthly: document.getElementById('otherMonthly'),
+      pCommit: document.getElementById('pCommit'),
+      targetProb: document.getElementById('targetProb'),
+      neededFirstDates: document.getElementById('neededFirstDates'),
+      weeksToCommit: document.getElementById('weeksToCommit'),
+      monthsToCommit: document.getElementById('monthsToCommit'),
+      totalCost: document.getElementById('totalCost'),
+      perDateSpend: document.getElementById('perDateSpend'),
+      monthlySpend: document.getElementById('monthlySpend'),
+      monthsCount: document.getElementById('monthsCount'),
+      resetBtn: document.getElementById('resetBtn'),
+    };
+
+    // Fallback defaults if JSON doesn't load
+    let defaults = {
+      dates_per_week: 1,
+      cost_per_date: 55,
+      app_subscription_monthly: 20,
+      other_monthly_costs: 15,
+      p_commit_per_first_date: 0.05, // 5%
+      target_probability: 0.8       // 80%
+    };
+
+    async function loadDefaults() {
+      try {
+        const res = await fetch('london_defaults_2025.json', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          defaults = { ...defaults, ...data };
+        }
+      } catch (e) {
+        console.warn('Could not load london_defaults_2025.json, using built-in defaults.', e);
+      }
+      applyDefaults();
+    }
+
+    function applyDefaults() {
+      els.datesPerWeek.value = defaults.dates_per_week;
+      els.costPerDate.value = defaults.cost_per_date;
+      els.appSub.value = defaults.app_subscription_monthly;
+      els.otherMonthly.value = defaults.other_monthly_costs;
+      els.pCommit.value = Math.round(defaults.p_commit_per_first_date * 100 * 10) / 10;
+      els.targetProb.value = Math.round(defaults.target_probability * 100);
+      updateUI();
+    }
+
+    function clamp(v, lo, hi, fallback) {
+      v = Number(v);
+      if (Number.isFinite(v)) return Math.min(hi, Math.max(lo, v));
+      return fallback;
+    }
+
+    function calc() {
+      const datesPerWeek = clamp(els.datesPerWeek.value, 0.25, 5, 1);
+      const costPerDate = Math.max(0, Number(els.costPerDate.value) || 0);
+      const appSub = Math.max(0, Number(els.appSub.value) || 0);
+      const otherMonthly = Math.max(0, Number(els.otherMonthly.value) || 0);
+      const pCommitPct = clamp(els.pCommit.value, 0.1, 50, 5);
+      const targetProbPct = clamp(els.targetProb.value, 50, 99.9, 80);
+
+      const p = pCommitPct / 100;         // success prob per first date
+      const target = targetProbPct / 100; // desired cumulative success prob
+
+      // n ≥ ln(1 − target) / ln(1 − p)
+      const nNeeded = Math.ceil(Math.log(1 - target) / Math.log(1 - p));
+
+      const weeks = nNeeded / datesPerWeek;
+      const months = Math.ceil(weeks / 4.345); // average weeks per month
+      const perDateTotal = nNeeded * costPerDate;
+      const monthlyTotal = months * (appSub + otherMonthly);
+      const total = perDateTotal + monthlyTotal;
+
+      return {
+        datesPerWeek, costPerDate, appSub, otherMonthly, pCommitPct, targetProbPct,
+        nNeeded, weeks, months, perDateTotal, monthlyTotal, total
+      };
+    }
+
+    function nfGBP(x) {
+      return new Intl.NumberFormat('en-GB', { style: 'decimal', maximumFractionDigits: 0 }).format(x);
+    }
+    function nf1(x) {
+      return new Intl.NumberFormat('en-GB', { style: 'decimal', maximumFractionDigits: 1 }).format(x);
+    }
+
+    function updateUI() {
+      const c = calc();
+      els.datesPerWeekVal.textContent = nf1(c.datesPerWeek);
+      els.neededFirstDates.textContent = nfGBP(c.nNeeded);
+      els.weeksToCommit.textContent = nf1(c.weeks);
+      els.monthsToCommit.textContent = nf1(c.months);
+      els.totalCost.textContent = nfGBP(c.total);
+      els.perDateSpend.textContent = nfGBP(c.perDateTotal);
+      els.monthlySpend.textContent = nfGBP(c.appSub + c.otherMonthly);
+      els.monthsCount.textContent = nfGBP(c.months);
+    }
+
+    els.datesPerWeek.addEventListener('input', updateUI);
+    ['costPerDate','appSub','otherMonthly','pCommit','targetProb'].forEach(id => {
+      els[id].addEventListener('input', updateUI);
+    });
+    els.resetBtn.addEventListener('click', applyDefaults);
+
+    loadDefaults();
+  </script>
+</body>
+</html>
